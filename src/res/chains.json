@@ -1,0 +1,10 @@
+[
+    {
+        "chainId": "0x7b",
+        "rpcUrls": ["https://testnet-eth.wlblock.io/"],
+        "chainName": "Wlblock Test Chian",
+        "default": true,
+        "tokens": ["0xf7118ac23fa5e238e96d79a0504d7606effa2624"],
+        "claim": "0x096bd91e851d3bd71a98053427da0394a732ab35"
+    }
+]
