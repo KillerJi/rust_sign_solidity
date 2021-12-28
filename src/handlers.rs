@@ -128,7 +128,7 @@ impl Handlers {
         let account = address
             .parse()
             .map_err(|_| XProtocolError::ExpectationFailed)?;
-        let contract = "0x219f7D2645a403a6D6389D2CC733c74594665C3F";
+        let contract = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
         let contract = H160::from_str(contract).map_err(|_| XProtocolError::InternalServerError)?;
         let sign: [u8; 32] = Claim {
             account,
