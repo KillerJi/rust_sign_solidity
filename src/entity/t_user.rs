@@ -3,14 +3,19 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "vault")]
+#[sea_orm(table_name = "t_user")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: u64,
-    pub address: Option<String>,
-    pub chain_id: Option<String>,
-    pub nonce: Option<String>,
-    pub number: Option<String>,
+    pub id: i32,
+    pub user_address: String,
+    pub dividends_earnings: Option<String>,
+    pub invitation_earnings: Option<String>,
+    pub pool_earnings: Option<String>,
+    pub total_earnings: Option<String>,
+    pub buy_key_amount: Option<String>,
+    pub can_claim_amount: Option<String>,
+    pub claimed_amount: Option<String>,
+    pub create_time: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]

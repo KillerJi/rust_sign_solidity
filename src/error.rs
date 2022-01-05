@@ -37,6 +37,10 @@ pub enum XProtocolError {
     ChainIdNotFound,
     #[error("unknown")]
     Unknown,
+    #[error("overflow")]
+    Overflow,
+    #[error("Insufficient balance")]
+    InsufficientBalance,
 }
 
 impl ResponseError for XProtocolError {
@@ -54,6 +58,8 @@ impl ResponseError for XProtocolError {
             Self::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
             Self::ChainIdNotFound => StatusCode::EXPECTATION_FAILED,
             Self::Unknown => StatusCode::BAD_REQUEST,
+            Self::Overflow => StatusCode::BAD_REQUEST,
+            Self::InsufficientBalance => StatusCode::BAD_REQUEST,
         };
         HttpResponse::build(status_code).json(ErrorResponse::new(status_code, self.to_string()))
     }

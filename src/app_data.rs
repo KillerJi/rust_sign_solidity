@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use sea_orm::{
-    entity::*, Condition, ConnectionTrait, DatabaseBackend, DatabaseConnection, DeriveColumn,
-    EnumIter, QueryFilter, QuerySelect, Statement,
+    entity::*, Condition, ConnectionTrait, DatabaseBackend, DatabaseConnection, DbConn,
+    DeriveColumn, EnumIter, QueryFilter, QuerySelect, Statement,
 };
 use web3::types::{H160, H256};
 
@@ -37,12 +37,14 @@ impl AppData {
             DatabaseBackend::MySql,
             r#"
             CREATE TABLE IF NOT EXISTS `vault` (
-                `rounds` bigint(50) unsigned NOT NULL AUTO_INCREMENT,
-                `account` varchar(42) NOT NULL,
-                `nonce` bigint(50) unsigned NOT NULL DEFAULT 0,
-                PRIMARY KEY (`rounds`),
-                UNIQUE KEY `atao` (`rounds`,`account`,`nonce`) USING BTREE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                id bigint(20) NOT NULL AUTO_INCREMENT,
+                address varchar(42) DEFAULT NULL,
+                chain_id varchar(255) DEFAULT NULL,
+                nonce varchar(32) DEFAULT '0',
+                number varchar(64) DEFAULT '0',
+                PRIMARY KEY (id),
+                UNIQUE KEY address_chain_nonce (address,chain_id,nonce) USING BTREE
+              ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 		"#
             .to_owned(),
         ))
@@ -50,23 +52,28 @@ impl AppData {
 
         txn.commit().await.map_err(|e| e.into())
     }
+}
 
-    pub async fn get_nonce(&self, rounds: u64, address: String) -> u64 {
-        #[derive(Copy, Clone, Debug, EnumIter, DeriveColumn)]
-        enum QueryAs {
-            Number,
-        }
-        Vault::find()
-            .select_only()
-            .filter(
-                Condition::all()
-                    .add(vault::Column::Rounds.eq(rounds))
-                    .add(vault::Column::Account.eq(address)),
-            )
-            .column_as(claims::Column::Number, QueryAs::Number)
-            .into_values::<_, QueryAs>()
-            .one(&self.pool)
-            .await
-            .map_or_else(|_| 0, |v| v.unwrap_or(0))
+pub async fn get_number(db: &DbConn, address: String, chain_id: String, nonce: String) -> String {
+    #[derive(Copy, Clone, Debug, EnumIter, DeriveColumn)]
+    enum QueryAs {
+        Number,
     }
+    println!("GET ");
+    println!("chain_id {:?}", chain_id);
+    println!("address {:?}", address);
+    println!("nonce {:?}", nonce);
+    Vault::find()
+        .filter(
+            Condition::all()
+                .add(vault::Column::Address.eq(address))
+                .add(vault::Column::ChainId.eq(chain_id))
+                .add(vault::Column::Nonce.eq(nonce)),
+        )
+        .select_only()
+        .column_as(vault::Column::Number, QueryAs::Number)
+        .into_values::<_, QueryAs>()
+        .one(db)
+        .await
+        .map_or_else(|_| 0.to_string(), |v| v.unwrap_or(0.to_string()))
 }
