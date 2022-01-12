@@ -54,11 +54,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .map_or_else(|_| None, |d| Some((v.chain_id.clone(), d)))
         })
         .collect();
-
+        
     // let private_key = "7efe2ed0866b6b7a91699712e4cfa0cd343d825064e56cc5e3c2bf46bc9c6cc8".parse()?;
-    let private_key =
-        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80".parse()?;
-    let mysql_url = "mysql://root:123000@192.168.3.40:3306/fomo_admin?ssl-mode=disabled";
+    // let private_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80".parse()?;
+    let private_key =    "13962cc606545b8a706ee4fad4ccf6cfd21add41e24f4c9abd667ceeaa0a74aa".parse()?;
+    let mysql_url = "mysql://root:uvwWcoyAI0uN@172.31.34.227:3306/fomo_admin_test?ssl-mode=disabled";
     let pool = Database::connect(mysql_url).await?;
 
     let app_data = AppData::new(chains_bytes, claims, private_key, pool);

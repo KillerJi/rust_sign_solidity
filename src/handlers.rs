@@ -61,7 +61,7 @@ impl Handlers {
     pub fn app_config(cfg: &mut web::ServiceConfig) {
         cfg.route("/", web::get().to(Self::index))
             .route(
-                "/sign/{chain_id}/{buy_num}/{final_key}/{key_price}/{team}/{address}/{nonce}",
+                "/sign/{chain_id}/{buy_num}/{final_key}/{team}/{address}/{nonce}",
                 web::get().to(Self::sign),
             )
             .route(
@@ -75,10 +75,10 @@ impl Handlers {
     }
 
     pub async fn sign(
-        path: web::Path<(String, u64, u64, u64, u64, String, u64)>,
+        path: web::Path<(String, u64, String, u64, String, u64)>,
         _data: web::Data<AppData>,
     ) -> Result<HttpResponse, XProtocolError> {
-        let (chain_id, buy_num, final_key_price, each_key_price, team, address, nonce) =
+        let (chain_id, buy_num, final_key_price, team, address, nonce) =
             path.into_inner();
         let number = app_data::get_number(
             &_data.pool,
@@ -87,25 +87,33 @@ impl Handlers {
             nonce.to_string(),
         )
         .await;
+        let each_key_price = 20_0000_0000_0000u128;
+        let final_key_price = final_key_price.parse::<u128>().unwrap();
         println!("final_key_price {:?}", final_key_price);
         println!("each_key_price {:?}", each_key_price);
-        let number = number.parse::<u64>().unwrap();
+        let number = number.parse::<u128>().unwrap();
         println!("number {:?}", number);
         if number == 0 {
-            return Err(XProtocolError::ExpectationFailed);
+            return Err(XProtocolError::NoMoney);
         }
-        let num = buy_num.checked_sub(1).ok_or(XProtocolError::Overflow)?;
+        let num = (buy_num as u128).checked_sub(1).ok_or(XProtocolError::Overflow)?;
+        println!("num {:?}",num);
         let sum_key_price = each_key_price
             .checked_mul(num)
             .ok_or(XProtocolError::Overflow)?;
+            println!("sum_key_price {:?}",sum_key_price);
         let last_key_price = sum_key_price
             .checked_add(final_key_price)
             .ok_or(XProtocolError::Overflow)?;
+            println!("last_key_price {:?}",last_key_price);
         let sum = final_key_price
             .checked_add(last_key_price)
             .ok_or(XProtocolError::Overflow)?;
-        let sum = sum.checked_mul(buy_num).ok_or(XProtocolError::Overflow)?;
+            println!("sum {:?}",sum);
+        let sum = sum.checked_mul(buy_num as u128).ok_or(XProtocolError::Overflow)?;
+        println!("sum {:?}",sum);
         let sum = sum.checked_div(2).ok_or(XProtocolError::Overflow)?;
+        println!("sum {:?}",sum);
         if number < sum {
             return Err(XProtocolError::InsufficientBalance);
         }
@@ -113,7 +121,8 @@ impl Handlers {
         let account = address
             .parse()
             .map_err(|_| XProtocolError::ExpectationFailed)?;
-        let contract = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
+        // let contract = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
+        let contract = "0xC7615633ce7E8F66ffCD02c166AB8D59ca46d1D2";
         let contract = H160::from_str(contract).map_err(|_| XProtocolError::InternalServerError)?;
         let sign: [u8; 32] = VaultBuy {
             buy_num,
@@ -154,11 +163,13 @@ impl Handlers {
         )
         .await;
         let number = number.parse::<u64>().unwrap();
+        println!("number {:?}",number);
         let address = address.to_lowercase();
         let account = address
             .parse()
             .map_err(|_| XProtocolError::ExpectationFailed)?;
-        let contract = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
+        // let contract = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
+        let contract = "0xC7615633ce7E8F66ffCD02c166AB8D59ca46d1D2";
         let contract = H160::from_str(contract).map_err(|_| XProtocolError::InternalServerError)?;
         let sign: [u8; 32] = Claim {
             account,
